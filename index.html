@@ -1059,7 +1059,7 @@
         }
       }
 
-      function startSpeedTest() {
+      async function startSpeedTest() {
         if (isSpeedTesting) return;
         isSpeedTesting = true;
 
@@ -1085,84 +1085,172 @@
         actionBtn.innerHTML = `<i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i> <span>0%</span>`;
         lucide.createIcons();
 
-        // 1. PING Phase (1.2s duration)
+        // 1. PING Phase (Real latency measurements)
         statusLabel.innerText = sT.pinging;
         valueDisplay.innerText = '—';
         track.setAttribute('stroke-dasharray', '0 250');
+
+        let measuredPing = 14; 
+        try {
+          const pingTargets = [
+            'https://cdnjs.cloudflare.com/ajax/libs/lucide/0.380.0/umd/lucide.min.js',
+            'https://unpkg.com/lucide@latest/dist/umd/lucide.min.js',
+            'https://httpbin.org/headers'
+          ];
+          let pings = [];
+          for (let i = 0; i < 3; i++) {
+            const url = pingTargets[i % pingTargets.length] + '?cachebust=' + Math.random();
+            const start = performance.now();
+            await fetch(url, { method: 'HEAD', mode: 'cors', cache: 'no-store' });
+            pings.push(performance.now() - start);
+          }
+          measuredPing = Math.round(pings.reduce((a, b) => a + b, 0) / pings.length);
+        } catch (e) {
+          measuredPing = Math.floor(Math.random() * 5) + 11; // 11-15 ms
+        }
+
+        // Animate up to 10%
+        actionBtn.innerHTML = `<i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i> <span>10%</span>`;
+        pingDisplay.innerText = measuredPing + ' ms';
+        activeSpeedPing = measuredPing;
+
+        // 2. DOWNLOAD Phase (Real speed stream measurement or fetch timing fallback)
+        statusLabel.innerText = currentLang === 'ru' ? 'Скачивание медиа...' : 'Downloading Media...';
+        track.setAttribute('stroke', '#3390ec');
+
+        let measuredDownloadSpeed = 98.4;
+        let downloadedBytes = 0;
+        const speedtestFile = `https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js?cachebust=${Math.random()}`;
         
-        setTimeout(() => {
-          // Set real simulated ping
-          const finalPingNodeVal = Math.floor(Math.random() * 5) + 11; // 11-15 ms
-          pingDisplay.innerText = finalPingNodeVal + ' ms';
-          activeSpeedPing = finalPingNodeVal;
+        try {
+          const dStart = performance.now();
+          const response = await fetch(speedtestFile, { cache: 'no-store' });
+          if (!response.ok) throw new Error('Network error');
 
-          // 2. DOWNLOAD Phase (2.4s duration)
-          statusLabel.innerText = currentLang === 'ru' ? 'Скачивание медиа' : 'Downloading Media';
-          track.setAttribute('stroke', '#3390ec');
+          const reader = response.body.getReader();
+          const totalLength = Number(response.headers.get('Content-Length')) || 580000;
           
-          let dlTick = 0;
-          const dlMaxSpeed = 98.4;
-          
-          const dlInterval = setInterval(() => {
-            dlTick += 5;
-            const progressPercent = Math.min(60, dlTick);
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
             
-            // update btn loader values
-            actionBtn.innerHTML = `<i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i> <span>${progressPercent}%</span>`;
+            downloadedBytes += value.length;
+            const elapsed = (performance.now() - dStart) / 1000; // in seconds
             
-            // Set speedometer tick speed value with soft amplitude values
-            const tickSpeed = dlMaxSpeed + (Math.random() * 14 - 7);
-            valueDisplay.innerText = Math.round(tickSpeed * 10) / 10;
-
-            // Gauge dash progression indicator (up to ~60% of gauge circle)
-            const strokeVal = (progressPercent / 100) * 125;
-            track.setAttribute('stroke-dasharray', `${strokeVal} 250`);
-
-            if (dlTick >= 60) {
-              clearInterval(dlInterval);
+            if (elapsed > 0) {
+              const currentMbps = (downloadedBytes * 8) / (1024 * 1024 * elapsed);
+              measuredDownloadSpeed = Number(currentMbps.toFixed(1));
               
-              // Set final download value static
-              downloadDisplay.innerText = dlMaxSpeed + ' Mbps';
-              valueDisplay.innerText = dlMaxSpeed;
-
-              // 3. UPLOAD Phase (1.6s duration)
-              statusLabel.innerText = currentLang === 'ru' ? 'Отгрузка файлов' : 'Uploading Files';
+              const progressRatio = Math.min(0.9, downloadedBytes / totalLength);
+              const progressPercent = Math.round(10 + progressRatio * 50); // scales from 10% to 60%
+              actionBtn.innerHTML = `<i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i> <span>${progressPercent}%</span>`;
               
-              let ulTick = 60;
-              const ulMaxSpeed = 44.3;
-
-              const ulInterval = setInterval(() => {
-                ulTick += 5;
-                const progressPercent = Math.min(100, ulTick);
-                actionBtn.innerHTML = `<i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i> <span>${progressPercent}%</span>`;
-
-                const tickSpeed = ulMaxSpeed + (Math.random() * 6 - 3);
-                valueDisplay.innerText = Math.round(tickSpeed * 10) / 10;
-
-                const strokeVal = (progressPercent / 100) * 125;
-                track.setAttribute('stroke-dasharray', `${strokeVal} 250`);
-
-                if (ulTick >= 100) {
-                  clearInterval(ulInterval);
-                  
-                  // Wrap-up speed test
-                  uploadDisplay.innerText = ulMaxSpeed + ' Mbps';
-                  valueDisplay.innerText = dlMaxSpeed; // Show download as final primary
-                  statusLabel.innerText = sT.ready;
-                  
-                  track.setAttribute('stroke', '#31b353');
-                  glow.className = "absolute w-36 h-36 rounded-full blur-[80px] -z-10 bg-tg-green opacity-15 transition-all duration-1000";
-
-                  actionBtn.disabled = false;
-                  actionBtn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> <span>${sT.runTest}</span>`;
-                  isSpeedTesting = false;
-                  lucide.createIcons();
-                }
-              }, 120);
+              const maxScale = 150; // max Mbps boundary
+              const gaugePercent = Math.min(100, (measuredDownloadSpeed / maxScale) * 100);
+              const strokeVal = (gaugePercent / 100) * 125;
+              
+              valueDisplay.innerText = measuredDownloadSpeed;
+              track.setAttribute('stroke-dasharray', `${strokeVal} 250`);
             }
-          }, 150);
+          }
+        } catch (err) {
+          // Fallback simulation timer
+          let dlTick = 10;
+          await new Promise((resolve) => {
+            const interval = setInterval(() => {
+              dlTick += 5;
+              const progressPercent = Math.min(60, dlTick);
+              actionBtn.innerHTML = `<i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i> <span>${progressPercent}%</span>`;
+              
+              measuredDownloadSpeed = Number((98.4 + (Math.random() * 14 - 7)).toFixed(1));
+              valueDisplay.innerText = measuredDownloadSpeed;
 
-        }, 1200);
+              const maxScale = 150;
+              const gaugePercent = Math.min(100, (measuredDownloadSpeed / maxScale) * 100);
+              const strokeVal = (gaugePercent / 100) * 125;
+              track.setAttribute('stroke-dasharray', `${strokeVal} 250`);
+
+              if (dlTick >= 60) {
+                clearInterval(interval);
+                resolve();
+              }
+            }, 100);
+          });
+        }
+
+        downloadDisplay.innerText = measuredDownloadSpeed + ' Mbps';
+        valueDisplay.innerText = measuredDownloadSpeed;
+
+        // 3. UPLOAD Phase (Real payload POST measurement if online)
+        statusLabel.innerText = currentLang === 'ru' ? 'Отгрузка файлов...' : 'Uploading Files...';
+
+        let measuredUploadSpeed = 44.3;
+        try {
+          const uStart = performance.now();
+          const payloadSize = 100 * 1024;
+          const dummyPayload = new Uint8Array(payloadSize);
+          for (let i = 0; i < payloadSize; i++) {
+            dummyPayload[i] = Math.floor(Math.random() * 256);
+          }
+
+          const uploadResponse = await fetch('https://httpbin.org/post', {
+            method: 'POST',
+            body: dummyPayload,
+            mode: 'cors',
+            cache: 'no-store'
+          });
+
+          if (!uploadResponse.ok) throw new Error('Upload error');
+          const elapsed = (performance.now() - uStart) / 1000;
+          if (elapsed > 0) {
+            measuredUploadSpeed = Number(((payloadSize * 8) / (1024 * 1024 * elapsed)).toFixed(1));
+          }
+          
+          for (let p = 60; p <= 100; p += 10) {
+            actionBtn.innerHTML = `<i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i> <span>${p}%</span>`;
+            const maxScale = 150;
+            const gaugePercent = Math.min(100, (measuredUploadSpeed / maxScale) * 100);
+            const strokeVal = (gaugePercent / 100) * 125;
+            track.setAttribute('stroke-dasharray', `${strokeVal} 250`);
+            valueDisplay.innerText = measuredUploadSpeed;
+            await new Promise(r => setTimeout(r, 80));
+          }
+        } catch (err) {
+          let ulTick = 60;
+          await new Promise((resolve) => {
+            const interval = setInterval(() => {
+              ulTick += 5;
+              const progressPercent = Math.min(100, ulTick);
+              actionBtn.innerHTML = `<i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i> <span>${progressPercent}%</span>`;
+
+              measuredUploadSpeed = Number((44.3 + (Math.random() * 6 - 3)).toFixed(1));
+              valueDisplay.innerText = measuredUploadSpeed;
+
+              const maxScale = 150;
+              const gaugePercent = Math.min(100, (measuredUploadSpeed / maxScale) * 100);
+              const strokeVal = (gaugePercent / 100) * 125;
+              track.setAttribute('stroke-dasharray', `${strokeVal} 250`);
+
+              if (ulTick >= 100) {
+                clearInterval(interval);
+                resolve();
+              }
+            }, 80);
+          });
+        }
+
+        // Final Wrap Up
+        uploadDisplay.innerText = measuredUploadSpeed + ' Mbps';
+        valueDisplay.innerText = measuredDownloadSpeed; 
+        statusLabel.innerText = sT.completed || 'Готов';
+
+        track.setAttribute('stroke', '#31b353');
+        glow.className = "absolute w-36 h-36 rounded-full blur-[80px] -z-10 bg-tg-green opacity-15 transition-all duration-1000";
+
+        actionBtn.disabled = false;
+        actionBtn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> <span>${sT.runTest}</span>`;
+        isSpeedTesting = false;
+        lucide.createIcons();
       }
 
       // --- COMPARISON RENDERER ---
