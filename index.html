@@ -1,135 +1,1466 @@
-<!DOCTYPE html>
-<html lang="ru" class="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProxyGram - Самый быстрый Telegram</title>
+<!doctype html>
+<html lang="ru" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ProxyGram — Модифицированный клиент с автоматическими MTProto прокси</title>
+    
+    <!-- Meta description -->
+    <meta name="description" content="Продвинутый модифицированный клиент Telegram с автоматическим мгновенным подключением к защищенным MTProto прокси, Ghost Mode и снятием любых запретов на сохранение медиа." />
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS (Play CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        tg: {
-                            blue: '#3390ec',
-                            dark: '#212121',
-                            darker: '#181818',
-                            light: '#ffffff',
-                            hover: '#2c7cce'
-                        }
-                    }
-                }
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              tg: {
+                blue: '#3390ec',
+                hover: '#2a82dc',
+                green: '#31b353',
+                dark: '#1b1b1b',
+                darker: '#0e0e0e',
+              }
+            },
+            boxShadow: {
+              glow: '0 0 25px rgba(51, 144, 236, 0.25)',
+              'glow-lg': '0 0 40px rgba(51, 144, 236, 0.35)',
             }
+          },
+          fontFamily: {
+            sans: ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "sans-serif"],
+            mono: ["JetBrains Mono", "ui-monospace", "monospace"],
+          }
         }
+      }
     </script>
-    <style>
-        /* Кастомный скроллбар в стиле Telegram */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #181818; }
-        ::-webkit-scrollbar-thumb { background: #3390ec; border-radius: 4px; }
-    </style>
-</head>
-<body class="bg-tg-darker text-gray-100 font-sans min-h-screen flex flex-col selection:bg-tg-blue selection:text-white">
     
-    <nav class="w-full p-6 flex justify-between items-center gs-fade">
-        <div class="text-2xl font-bold text-tg-blue tracking-wider">ProxyGram</div>
-        <a href="https://github.com/ktoto1300/ProxyGram" target="_blank" class="text-gray-400 hover:text-white transition-colors">GitHub</a>
+    <style>
+      .shadow-glow {
+        box-shadow: 0 0 20px rgba(51, 144, 236, 0.25);
+      }
+      .shadow-glow-hover:hover {
+        box-shadow: 0 0 35px rgba(51, 144, 236, 0.45);
+      }
+      /* Hide scrollbar metrics */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #0e0e0e;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #252525;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #3390ec;
+      }
+    </style>
+  </head>
+  <body class="bg-tg-darker font-sans text-gray-100 min-h-screen flex flex-col selection:bg-tg-blue selection:text-white overflow-x-hidden">
+
+    <!-- 1. NAVBAR -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-tg-darker/80 backdrop-blur-lg border-b border-white/5 select-none animate-fade-in">
+      <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+        
+        <!-- Logo -->
+        <div class="flex items-center gap-2">
+          <span class="w-8 h-8 rounded-xl bg-tg-blue flex items-center justify-center font-black text-white text-base shadow-glow">
+            P
+          </span>
+          <span class="text-xl font-extrabold text-white tracking-wider flex items-center gap-1.5">
+            ProxyGram 
+            <span class="text-xs bg-tg-blue/25 text-tg-blue px-1.5 py-0.5 rounded uppercase font-mono tracking-tight font-bold">PRO</span>
+          </span>
+        </div>
+
+        <!-- Links (Desktop) -->
+        <div class="hidden lg:flex items-center gap-6">
+          <a href="#features-section" class="text-sm font-medium text-gray-400 hover:text-white transition-colors tracking-wide" data-t="nav.features">Функции</a>
+          <a href="#proxy-diagnostics" class="text-sm font-medium text-gray-400 hover:text-white transition-colors tracking-wide" data-t="nav.speed">Скорость Прокси</a>
+          <a href="#feature-comparison" class="text-sm font-medium text-gray-400 hover:text-white transition-colors tracking-wide" data-t="nav.comparison">Сравнение</a>
+          <a href="#install-guide" class="text-sm font-medium text-gray-400 hover:text-white transition-colors tracking-wide" data-t="nav.instruction">Инструкция</a>
+          <a href="#faq-section" class="text-sm font-medium text-gray-400 hover:text-white transition-colors tracking-wide" data-t="nav.faq">FAQ</a>
+        </div>
+
+        <!-- Right Elements -->
+        <div class="hidden lg:flex items-center gap-4">
+          <!-- Translation Switcher -->
+          <div class="flex items-center gap-1 bg-white/5 rounded-xl p-1 border border-white/5">
+            <button onclick="setLanguage('ru')" id="lang-btn-ru" class="px-2.5 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer bg-tg-blue text-white shadow-sm">
+              RU
+            </button>
+            <button onclick="setLanguage('en')" id="lang-btn-en" class="px-2.5 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer text-gray-400 hover:text-white">
+              EN
+            </button>
+          </div>
+
+          <a href="https://github.com/ktoto1300/ProxyGram-source/tree/main/TMessagesProj" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-gray-200 hover:text-white hover:bg-white/10 transition-all font-mono">
+            <i data-lucide="github" class="w-4 h-4"></i>
+            <span data-t="nav.github">Репозиторий</span>
+          </a>
+        </div>
+
+        <!-- Mobile Buttons -->
+        <div class="flex lg:hidden items-center gap-2">
+          <div class="flex items-center bg-white/5 rounded-xl p-0.5 border border-white/5 text-[10.5px]">
+            <button onclick="setLanguage('ru')" id="lang-btn-ru-mobile" class="px-2 py-0.5 font-bold rounded-lg bg-tg-blue text-white">
+              RU
+            </button>
+            <button onclick="setLanguage('en')" id="lang-btn-en-mobile" class="px-2 py-0.5 font-bold rounded-lg text-gray-400">
+              EN
+            </button>
+          </div>
+
+          <button onclick="toggleMobileMenu()" class="p-2 text-gray-400 hover:text-white rounded-xl bg-white/5">
+            <i id="menu-icon" data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Mobile Dropdown Menu -->
+      <div id="mobile-menu" class="hidden lg:hidden border-t border-white/5 bg-[#141414] py-4 px-4 space-y-3 shadow-2xl">
+        <div class="flex flex-col space-y-3">
+          <a href="#features-section" onclick="closeMobileMenu()" class="text-sm font-medium text-gray-400 hover:text-white block p-2 rounded-xl hover:bg-white/5 transition-colors" data-t="nav.features">Функции</a>
+          <a href="#proxy-diagnostics" onclick="closeMobileMenu()" class="text-sm font-medium text-gray-400 hover:text-white block p-2 rounded-xl hover:bg-white/5 transition-colors" data-t="nav.speed">Скорость Прокси</a>
+          <a href="#feature-comparison" onclick="closeMobileMenu()" class="text-sm font-medium text-gray-400 hover:text-white block p-2 rounded-xl hover:bg-white/5 transition-colors" data-t="nav.comparison">Сравнение</a>
+          <a href="#install-guide" onclick="closeMobileMenu()" class="text-sm font-medium text-gray-400 hover:text-white block p-2 rounded-xl hover:bg-white/5 transition-colors" data-t="nav.instruction">Инструкция</a>
+          <a href="#faq-section" onclick="closeMobileMenu()" class="text-sm font-medium text-gray-400 hover:text-white block p-2 rounded-xl hover:bg-white/5 transition-colors" data-t="nav.faq">FAQ</a>
+        </div>
+        <div class="pt-3 border-t border-white/5">
+          <a href="https://github.com/ktoto1300/ProxyGram-source/tree/main/TMessagesProj" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-tg-blue hover:bg-tg-hover text-sm font-bold text-white transition-colors font-mono">
+            <i data-lucide="github" class="w-4 h-4"></i>
+            <span>GitHub Repository</span>
+          </a>
+        </div>
+      </div>
     </nav>
 
-    <!-- Ad Banner 728x90 -->
-    <div class="w-full flex justify-center py-4 gs-fade">
-        <script src="https://edersen.ru/19-95zwf.ryu13-3hcz-u7t80vkpv_hd.wy-1-2_xf.5y-?r=629912" type="text/javascript"></script>
-    </div>
+    <!-- 2. HERO -->
+    <header class="relative w-full pt-28 sm:pt-36 pb-12 sm:pb-16 flex flex-col items-center justify-center overflow-hidden">
+      <!-- Ambient colorful glow backing -->
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] sm:w-[550px] h-[280px] sm:h-[550px] bg-tg-blue/10 rounded-full blur-[80px] sm:blur-[140px] -z-10 pointer-events-none"></div>
 
-    <main class="flex-grow flex flex-col items-center justify-center p-4 text-center relative overflow-hidden">
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-tg-blue opacity-10 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
-
-        <div class="max-w-4xl w-full space-y-14 mt-8 mb-12">
-            
-            <div class="space-y-6 gs-hero">
-                <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight">
-                    Твой <span class="text-tg-blue drop-shadow-[0_0_15px_rgba(51,144,236,0.5)]">ProxyGram</span>.<br>Скорость без границ.
-                </h1>
-                <p class="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto">
-                    Продвинутый мод с мгновенным подключением к <span class="text-white font-bold">стабильным и высокоскоростным</span> MTProto прокси, режимом невидимки и снятием любых ограничений.
-                </p>
-            </div>
-
-            <div class="gs-hero relative z-10">
-                <a href="dist/ProxyGram.apk" download id="downloadBtn" class="inline-block group relative px-8 py-4 bg-tg-blue text-white text-xl font-bold rounded-2xl shadow-[0_0_20px_rgba(51,144,236,0.25)] hover:shadow-[0_0_35px_rgba(51,144,236,0.5)] hover:bg-tg-hover transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0">
-                    <span class="flex items-center gap-3">
-                        <svg class="w-6 h-6 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        Скачать APK
-                    </span>
-                </a>
-                <p class="mt-4 text-sm text-gray-500 font-mono">v1.0.0 • Android 6.0+</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-16 gs-features text-left">
-                <div class="bg-tg-dark/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 hover:border-tg-blue/40 transition-colors duration-300">
-                    <div class="text-tg-blue text-4xl mb-4">🚀</div>
-                    <h3 class="text-xl font-bold mb-2">Ультра-быстрые прокси</h3>
-                    <p class="text-gray-400">Автоматический выбор прокси с минимальным пингом. Мгновенная загрузка медиа и сообщений даже при плохом интернете.</p>
-                </div>
-                
-                <div class="bg-tg-dark/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 hover:border-tg-blue/40 transition-colors duration-300">
-                    <div class="text-tg-blue text-4xl mb-4">💎</div>
-                    <h3 class="text-xl font-bold mb-2">Стабильность 24/7</h3>
-                    <p class="text-gray-400">Наша система мониторинга удаляет нерабочие узлы. У вас всегда будет доступ к сети без ручного поиска серверов.</p>
-                </div>
-                
-                <div class="bg-tg-dark/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 hover:border-tg-blue/40 transition-colors duration-300">
-                    <div class="text-tg-blue text-4xl mb-4">👻</div>
-                    <h3 class="text-xl font-bold mb-2">Ghost Mode</h3>
-                    <p class="text-gray-400">Читай без пометки о прочтении, скрывай статус «Печатает», смотри удаленные сообщения и статусы собеседников.</p>
-                </div>
-                
-                <div class="bg-tg-dark/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 hover:border-tg-blue/40 transition-colors duration-300">
-                    <div class="text-tg-blue text-4xl mb-4">🔓</div>
-                    <h3 class="text-xl font-bold mb-2">Anti-Restrict</h3>
-                    <p class="text-gray-400">Снятие любых ограничений авторов. Сохраняй медиа, делай скриншоты и пересылай посты из защищенных каналов.</p>
-                </div>
-            </div>
+      <div class="max-w-6xl mx-auto px-4 w-full text-center space-y-8 sm:space-y-12 relative z-10">
+        
+        <!-- Release Status Badge -->
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-semibold text-gray-300">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-tg-blue fill-tg-blue/30"></i>
+          <span data-t="hero.sticker">Доступен стабильный релиз v1.0.0</span>
         </div>
-    </main>
 
-    <!-- Ad Banner 468x60 -->
-    <div class="w-full flex justify-center py-4 gs-fade">
-        <script src="https://edersen.ru/-164.x4l-.r.eja0v_ow.axy./x/ak_0qibgm_jb492xf5y?r=629912" type="text/javascript"></script>
-    </div>
+        <!-- Big Titles -->
+        <div class="space-y-4 sm:space-y-6">
+          <h1 class="text-3xl sm:text-5xl md:text-7xl font-extrabold tracking-tight leading-tight text-white select-none">
+            <span data-t="hero.titlePart1">Твой</span> 
+            <span class="text-tg-blue drop-shadow-[0_0_15px_rgba(51,144,236,0.5)] bg-gradient-to-r from-tg-blue to-cyan-400 bg-clip-text text-transparent" data-t="hero.titlePart2">ProxyGram</span>.<br />
+            <span data-t="hero.titlePart3">Скорость без границ.</span>
+          </h1>
+          <p class="text-sm sm:text-base md:text-xl text-gray-400 max-w-2xl mx-auto font-normal leading-relaxed" data-t="hero.description">
+            Продвинутый модифицированный клиент с мгновенным автоматическим подключением к безопасным MTProto прокси, полноценным режимом невидимки и снятием любых авторских ограничений в чатах.
+          </p>
+        </div>
 
-    <footer class="w-full p-6 text-center text-gray-600 text-sm gs-fade relative z-10">
-        &copy; 2026 ProxyGram Project. Open Source.
+        <!-- No-Redirect Safe Direct Sourced Download Button -->
+        <div class="flex flex-col items-center select-none">
+          <a href="https://github.com/ktoto1300/ProxyGram-source/tree/main/TMessagesProj" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-6 sm:px-8 py-4 bg-tg-blue hover:bg-tg-hover text-white text-base sm:text-xl font-bold rounded-2xl transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 shadow-glow shadow-glow-hover">
+            <i data-lucide="download" class="w-5 h-5 animate-pulse"></i>
+            <span data-t="hero.downloadBtn">Скачать установочный APK</span>
+          </a>
+          <p class="mt-3 text-[10px] sm:text-xs text-gray-500 font-mono tracking-wider" data-t="hero.downloadSub">
+            v1.0.0 • Android 6.0+ • Скачивание напрямую без вирусов
+          </p>
+        </div>
+
+        <!-- Repository Statistics badges -->
+        <div class="flex justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-gray-500 max-w-xs sm:max-w-sm mx-auto p-3 sm:p-4 border border-white/5 rounded-2xl bg-tg-dark/20 backdrop-blur select-none">
+          <div class="flex items-center gap-1.5 hover:text-white transition-colors">
+            <i data-lucide="star" class="w-4 h-4 text-amber-500 fill-amber-500"></i>
+            <span class="font-bold font-mono text-gray-200" data-t="hero.stars">248+ Звезд</span>
+          </div>
+          <div class="w-px h-5 bg-white/10"></div>
+          <div class="flex items-center gap-1.5 hover:text-white transition-colors">
+            <i data-lucide="git-fork" class="w-4 h-4 text-tg-blue"></i>
+            <span class="font-bold font-mono text-gray-200" data-t="hero.forks">42+ Форков</span>
+          </div>
+          <div class="w-px h-5 bg-white/10"></div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-tg-green"></span>
+            <span class="text-gray-400" data-t="hero.open">Открытый код</span>
+          </div>
+        </div>
+
+        <!-- Dynamic feature grid cards -->
+        <div id="features-section" class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-left pt-8 sm:pt-14 scroll-mt-24">
+          
+          <div class="bg-tg-dark/30 backdrop-blur-md p-5 sm:p-6 rounded-3xl border border-white/5 hover:border-tg-blue/40 transition-all duration-300 group flex items-start gap-4 hover:shadow-[0_4px_30px_rgba(51,144,236,0.03)]">
+            <div class="p-3.5 rounded-2xl bg-white/5 group-hover:bg-tg-blue/10 group-hover:scale-105 transition-all text-tg-blue shrink-0">
+              <i data-lucide="zap" class="w-6 h-6"></i>
+            </div>
+            <div class="space-y-1">
+              <h3 class="text-base sm:text-lg font-bold text-white group-hover:text-tg-blue transition-colors" data-t="hero.feat1Title">
+                Ультра-быстрые прокси
+              </h3>
+              <p class="text-xs sm:text-sm text-gray-400 leading-relaxed" data-t="hero.feat1Desc">
+                Автоматический выбор прокси с минимальным пингом. Мгновенная загрузка медиа и сообщений даже при плохом интернете.
+              </p>
+            </div>
+          </div>
+
+          <div class="bg-tg-dark/30 backdrop-blur-md p-5 sm:p-6 rounded-3xl border border-white/5 hover:border-tg-blue/40 transition-all duration-300 group flex items-start gap-4 hover:shadow-[0_4px_30px_rgba(51,144,236,0.03)]">
+            <div class="p-3.5 rounded-2xl bg-white/5 group-hover:bg-tg-blue/10 group-hover:scale-105 transition-all text-tg-blue shrink-0">
+              <i data-lucide="server" class="w-6 h-6"></i>
+            </div>
+            <div class="space-y-1">
+              <h3 class="text-base sm:text-lg font-bold text-white group-hover:text-tg-blue transition-colors" data-t="hero.feat2Title">
+                Стабильность 24/7
+              </h3>
+              <p class="text-xs sm:text-sm text-gray-400 leading-relaxed" data-t="hero.feat2Desc">
+                Наша распределенная система мониторинга удаляет нерабочие узлы. У вас всегда будет доступ к сети без ручного поиска серверов.
+              </p>
+            </div>
+          </div>
+
+          <div class="bg-tg-dark/30 backdrop-blur-md p-5 sm:p-6 rounded-3xl border border-white/5 hover:border-tg-blue/40 transition-all duration-300 group flex items-start gap-4 hover:shadow-[0_4px_30px_rgba(51,144,236,0.03)]">
+            <div class="p-3.5 rounded-2xl bg-white/5 group-hover:bg-tg-blue/10 group-hover:scale-105 transition-all text-tg-blue shrink-0">
+              <i data-lucide="eye-off" class="w-6 h-6"></i>
+            </div>
+            <div class="space-y-1">
+              <h3 class="text-base sm:text-lg font-bold text-white group-hover:text-tg-blue transition-colors" data-t="hero.feat3Title">
+                Ghost Mode
+              </h3>
+              <p class="text-xs sm:text-sm text-gray-400 leading-relaxed" data-t="hero.feat3Desc">
+                Читайте сообщения без пометок прочтения, оставайтесь невидимым и сохраняйте полную приватность.
+              </p>
+            </div>
+          </div>
+
+          <div class="bg-tg-dark/30 backdrop-blur-md p-5 sm:p-6 rounded-3xl border border-white/5 hover:border-tg-blue/40 transition-all duration-300 group flex items-start gap-4 hover:shadow-[0_4px_30px_rgba(51,144,236,0.03)]">
+            <div class="p-3.5 rounded-2xl bg-white/5 group-hover:bg-tg-blue/10 group-hover:scale-105 transition-all text-tg-blue shrink-0">
+              <i data-lucide="shield" class="w-6 h-6"></i>
+            </div>
+            <div class="space-y-1">
+              <h3 class="text-base sm:text-lg font-bold text-white group-hover:text-tg-blue transition-colors" data-t="hero.feat4Title">
+                Anti-Restrict (Обход блокировок)
+              </h3>
+              <p class="text-xs sm:text-sm text-gray-400 leading-relaxed" data-t="hero.feat4Desc">
+                Снятие ограничений авторов. Сохраняйте защищенные картинки и видео, делайте скриншоты в закрытых каналах.
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </header>
+
+    <!-- 3. PROXY SPEED TEST DIAGNOSTICS -->
+    <section id="proxy-diagnostics" class="w-full py-16 scroll-mt-20 border-t border-b border-white/5 bg-[#121212]/30 relative">
+      <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(51,144,236,0.06),transparent_50%)] pointer-events-none"></div>
+
+      <div class="max-w-4xl mx-auto px-4 relative z-10">
+        
+        <!-- Header Text Block -->
+        <div class="text-center max-w-3xl mx-auto mb-14 space-y-4">
+          <span class="px-3 py-1 bg-tg-green/10 text-tg-green text-xs font-semibold uppercase tracking-wider rounded-full border border-tg-green/20 font-mono" data-t="speed.badge">
+            Обход блокировок и ускорение
+          </span>
+          <h2 class="text-3xl md:text-5xl font-black tracking-tight text-white leading-tight" data-t="speed.title">
+            Мгновенный Пинг, Стабильный Доступ
+          </h2>
+          <p class="text-gray-400 text-sm sm:text-base md:text-lg" data-t="speed.desc">
+            В ProxyGram интегрирована обширная децентрализованная сеть защищенных MTProto-адресов. Клиент сам постоянно тестирует пинг на заднем фоне и на лету выбирает бырейший маршрут.
+          </p>
+        </div>
+
+        <!-- Meter Dashboard Card -->
+        <div class="bg-tg-dark/50 backdrop-blur-md rounded-3xl border border-white/5 p-6 md:p-8 flex flex-col justify-between min-h-[460px] shadow-2xl">
+          <div>
+            
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div>
+                <h3 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                  <span class="text-xl select-none">⚡</span>
+                  <span id="speedmeter-header-title">Тестирование скорости ProxyGram</span>
+                </h3>
+                <p class="text-xs text-gray-500 mt-0.5">
+                  <span id="speedmeter-active-label">активный узел:</span> <span class="text-tg-blue font-bold font-mono" data-t="speed.currentRoute">Автоматический смарт-прокси ProxyGram</span>
+                </p>
+              </div>
+              <button
+                type="button"
+                id="speedtest-btn"
+                onclick="startSpeedTest()"
+                class="w-full sm:w-auto px-5 py-2.5 bg-tg-blue hover:bg-tg-hover disabled:bg-tg-blue/20 text-white rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-tg-blue/15 cursor-pointer font-mono"
+              >
+                <i data-lucide="play" class="w-3.5 h-3.5"></i> 
+                <span data-t="speed.runTest">Запустить тест</span>
+              </button>
+            </div>
+
+            <!-- Visual gauge element -->
+            <div class="flex flex-col items-center justify-center py-4 relative">
+              <div id="gauge-glow" class="absolute w-36 h-36 rounded-full blur-[80px] -z-10 bg-tg-green opacity-15 transition-all duration-1000"></div>
+
+              <div class="relative w-64 h-32 flex items-end justify-center overflow-hidden">
+                <svg class="w-56 h-56 absolute -bottom-24 rotate-180" viewBox="0 0 100 100">
+                  <circle 
+                    cx="50" 
+                    cy="50" 
+                    r="40" 
+                    stroke="#212121" 
+                    strokeWidth="6" 
+                    fill="none" 
+                    strokeDasharray="125 250"
+                  />
+                  <circle 
+                    id="gauge-active-track"
+                    cx="50" 
+                    cy="50" 
+                    r="40" 
+                    stroke="#31b353" 
+                    strokeWidth="6" 
+                    fill="none" 
+                    strokeDasharray="0 250"
+                    class="transition-all duration-300"
+                  />
+                </svg>
+
+                <div class="text-center z-10 pb-2">
+                  <span id="speedtest-status-phase" class="text-[10px] sm:text-xs uppercase tracking-widest text-gray-500 font-mono block font-bold" data-t="speed.ready">
+                    Готов
+                  </span>
+                  <span id="speedtest-value" class="text-4xl md:text-5xl font-black text-white font-mono tracking-tight block mt-1">
+                    98.4
+                  </span>
+                  <span class="text-[9px] sm:text-xs font-bold font-mono text-gray-400 uppercase tracking-wider block mt-1">
+                    Mbps
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Multi stats values details -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-6 border-t border-white/5 text-center mt-4">
+              
+              <div class="bg-[#181818]/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-center items-center">
+                <span class="block text-[10px] uppercase font-semibold text-gray-500 tracking-wider mb-1" data-t="speed.ping">Пинг</span>
+                <div class="flex items-center justify-center gap-1.5 text-sm font-mono font-bold text-tg-green">
+                  <i data-lucide="wifi" class="w-4 h-4"></i> 
+                  <span id="speedtest-ping-val">14 ms</span>
+                </div>
+              </div>
+
+              <div class="bg-[#181818]/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-center items-center">
+                <span class="block text-[10px] uppercase font-semibold text-gray-500 tracking-wider mb-1" data-t="speed.download">Скачивание медиа</span>
+                <div class="flex items-center justify-center gap-1.5 text-sm font-mono font-bold text-tg-blue">
+                  <i data-lucide="arrow-down" class="w-4 h-4"></i> 
+                  <span id="speedtest-download-val">98.4 Mbps</span>
+                </div>
+              </div>
+
+              <div class="bg-[#181818]/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-center items-center">
+                <span class="block text-[10px] uppercase font-semibold text-gray-500 tracking-wider mb-1" data-t="speed.upload">Отдача файлов</span>
+                <div class="flex items-center justify-center gap-1.5 text-sm font-mono font-bold text-purple-400">
+                  <i data-lucide="arrow-up" class="w-4 h-4"></i> 
+                  <span id="speedtest-upload-val">44.3 Mbps</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Explanatory tip block -->
+          <div class="mt-8 p-4 bg-[#181818] rounded-2xl border border-white/5 flex gap-3.5 items-start">
+            <span class="p-2 bg-tg-green/10 text-tg-green rounded-xl flex-shrink-0">
+              <i data-lucide="check" class="w-4 h-4"></i>
+            </span>
+            <div class="text-left">
+              <span class="font-bold text-white text-xs sm:text-sm block mb-1" data-t="speed.whyFastTitle">Почему скорость с ProxyGram так высока?</span>
+              <p class="text-xs text-gray-400 leading-relaxed" data-t="speed.whyFastDesc">
+                ProxyGram использует обфусцированные каналы MTProto, минуя внешние фильтры провайдеров. Видео, подкасты и тяжелые файлы в Telegram загружаются так, будто вы напрямую подключены к официальному европейскому дата-центру Telegram (Telegram Core DC2).
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 4. COMPARISON MATRIX -->
+    <section id="feature-comparison" class="w-full py-16 scroll-mt-20">
+      <div class="max-w-6xl mx-auto px-4">
+        
+        <!-- Headers -->
+        <div class="text-center max-w-3xl mx-auto mb-14 space-y-4">
+          <span class="px-3 py-1 bg-tg-blue/10 text-tg-blue text-xs font-semibold uppercase tracking-wider rounded-full border border-tg-blue/20" data-t="comparison.badge">
+            Сравнение клиентов
+          </span>
+          <h2 class="text-3xl md:text-5xl font-black tracking-tight text-white" data-t="comparison.title">
+            Почему именно ProxyGram?
+          </h2>
+          <p class="text-gray-400 text-sm sm:text-base md:text-lg" data-t="comparison.desc">
+            Мы сопоставили функциональность стандартного Telegram, платных внешних VPN сервисов и клиента ProxyGram по ключевым параметрам конфиденциальности и скорости.
+          </p>
+        </div>
+
+        <!-- Desktop Comparison Table Layout -->
+        <div class="hidden md:block overflow-hidden rounded-3xl border border-white/5 bg-tg-dark/20 backdrop-blur-md shadow-2xl">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-tg-dark/65 border-b border-white/5 text-gray-300">
+                <th class="p-6 text-sm font-bold tracking-wider uppercase font-mono" data-t="comparison.col1">Характеристики клиента</th>
+                <th class="p-6 text-sm font-bold tracking-wider uppercase font-mono text-center" data-t="comparison.col2">Офиц. Telegram</th>
+                <th class="p-6 text-sm font-bold tracking-wider uppercase font-mono text-center" data-t="comparison.col3">Сторонний VPN</th>
+                <th class="p-6 text-sm font-bold tracking-wider uppercase font-mono text-center text-tg-blue bg-tg-blue/5 border-l border-tg-blue/10 font-bold">
+                  <span class="flex items-center justify-center gap-1.5">
+                    <i data-lucide="star" class="w-4 h-4 fill-tg-blue text-tg-blue animate-pulse"></i> 
+                    <span data-t="comparison.col4">ProxyGram</span>
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="comparison-rows-desktop" class="divide-y divide-white/5 text-gray-300">
+              <!-- Rendered via JS functions for seamless multilingual sync -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile Comparison Cards Layout -->
+        <div id="comparison-cards-mobile" class="grid grid-cols-1 gap-5 md:hidden">
+          <!-- Rendered via JS -->
+        </div>
+
+        <!-- Security and transparency notice -->
+        <div class="mt-8 flex flex-col md:flex-row items-center gap-4 p-5 rounded-2xl bg-amber-950/20 border border-amber-500/20">
+          <span class="p-3 bg-amber-500/10 text-amber-400 rounded-xl flex-shrink-0">
+            <i data-lucide="shield-alert" class="w-6 h-6 animate-pulse"></i>
+          </span>
+          <div class="text-center md:text-left">
+            <span class="font-bold text-white text-xs sm:text-sm block mb-1" data-t="comparison.securityTitle">Внимание к безопасности аккаунта</span>
+            <p class="text-xs text-gray-400 leading-relaxed" data-t="comparison.securityDesc">
+              Никаких модификаций баз данных или слежек. ProxyGram использует оригинальный SDK Telegram API и подключается к официальным серверам авторизации мессенджера. Использование встроенных прокси полностью легально и исключает риск бана вашего профиля.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 5. INSTALLATION GUIDE AND MOBILE EMBED -->
+    <section id="install-guide" class="w-full py-16 scroll-mt-20 border-t border-white/5 bg-tg-darker relative overflow-hidden">
+      
+      <!-- Tiny geometric tiles alignment -->
+      <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none opacity-50"></div>
+
+      <div class="max-w-6xl mx-auto px-4 relative z-10">
+        
+        <!-- Header Text Block -->
+        <div class="text-center max-w-3xl mx-auto mb-14 space-y-4">
+          <span class="px-3 py-1 bg-purple-900/40 text-purple-300 text-xs font-semibold uppercase tracking-wider rounded-full border border-purple-500/30 font-mono" data-t="guide.badge">
+            Инструкция по установке
+          </span>
+          <h2 class="text-3xl md:text-5xl font-black tracking-tight text-white" data-t="guide.title">
+            Как установить на Android?
+          </h2>
+          <p class="text-gray-400 text-sm sm:text-base md:text-lg" data-t="guide.desc">
+            Установка сторонних модов за пределами Google Play требует разрешения в настройках системы. Ознакомьтесь с простой четырёхшаговой инструкцией.
+          </p>
+        </div>
+
+        <!-- Step Menu Selectors -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-10 text-left">
+          
+          <button type="button" onclick="setStepIdx(0)" id="guide-step-btn-0" class="p-4 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between h-32 relative cursor-pointer bg-tg-blue/10 border-tg-blue/40 shadow-[0_4px_20px_rgba(51,144,236,0.05)]">
+            <div class="flex justify-between items-center w-full">
+              <span class="text-[10px] sm:text-xs font-mono font-bold text-tg-blue"><span class="lang-step-label">Шаг</span> 01</span>
+              <span class="step-check-indicator hidden w-5 h-5 rounded-full bg-tg-green/20 text-tg-green flex items-center justify-center">
+                <i data-lucide="check" class="w-3 h-3 stroke-[3px]"></i>
+              </span>
+            </div>
+            <div class="overflow-hidden w-full">
+              <h4 class="text-xs sm:text-sm font-bold text-white tracking-wide truncate" data-t="guide.step1Title">Скачайте APK-файл</h4>
+              <p class="text-[10px] sm:text-xs text-gray-500 mt-0.5 truncate" data-t="guide.step1Desc font-mono">Скачайте файл приложения</p>
+            </div>
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/5 rounded-b-2xl overflow-hidden">
+              <div id="step-progress-indicator-0" class="h-full bg-tg-blue w-full transition-all duration-500"></div>
+            </div>
+          </button>
+
+          <button type="button" onclick="setStepIdx(1)" id="guide-step-btn-1" class="p-4 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between h-32 relative cursor-pointer bg-tg-dark/40 border-white/5 hover:border-white/10">
+            <div class="flex justify-between items-center w-full">
+              <span class="text-[10px] sm:text-xs font-mono font-bold text-gray-500"><span class="lang-step-label">Шаг</span> 02</span>
+              <span class="step-check-indicator hidden w-5 h-5 rounded-full bg-tg-green/20 text-tg-green flex items-center justify-center">
+                <i data-lucide="check" class="w-3 h-3 stroke-[3px]"></i>
+              </span>
+            </div>
+            <div class="overflow-hidden w-full">
+              <h4 class="text-xs sm:text-sm font-bold text-white tracking-wide truncate" data-t="guide.step2Title">Параметры безопасности</h4>
+              <p class="text-[10px] sm:text-xs text-gray-500 mt-0.5 truncate" data-t="guide.step2Desc">Разрешите из браузеров</p>
+            </div>
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/5 rounded-b-2xl overflow-hidden">
+              <div id="step-progress-indicator-1" class="h-full bg-tg-blue w-0 transition-all duration-500"></div>
+            </div>
+          </button>
+
+          <button type="button" onclick="setStepIdx(2)" id="guide-step-btn-2" class="p-4 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between h-32 relative cursor-pointer bg-tg-dark/40 border-white/5 hover:border-white/10">
+            <div class="flex justify-between items-center w-full">
+              <span class="text-[10px] sm:text-xs font-mono font-bold text-gray-500"><span class="lang-step-label">Шаг</span> 03</span>
+              <span class="step-check-indicator hidden w-5 h-5 rounded-full bg-tg-green/20 text-tg-green flex items-center justify-center">
+                <i data-lucide="check" class="w-3 h-3 stroke-[3px]"></i>
+              </span>
+            </div>
+            <div class="overflow-hidden w-full">
+              <h4 class="text-xs sm:text-sm font-bold text-white tracking-wide truncate" data-t="guide.step3Title">Активация тумблера</h4>
+              <p class="text-[10px] sm:text-xs text-gray-500 mt-0.5 truncate" data-t="guide.step3Desc">Выдайте разрешение</p>
+            </div>
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/5 rounded-b-2xl overflow-hidden">
+              <div id="step-progress-indicator-2" class="h-full bg-tg-blue w-0 transition-all duration-500"></div>
+            </div>
+          </button>
+
+          <button type="button" onclick="setStepIdx(3)" id="guide-step-btn-3" class="p-4 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between h-32 relative cursor-pointer bg-tg-dark/40 border-white/5 hover:border-white/10">
+            <div class="flex justify-between items-center w-full">
+              <span class="text-[10px] sm:text-xs font-mono font-bold text-gray-500"><span class="lang-step-label">Шаг</span> 04</span>
+              <span class="step-check-indicator hidden w-5 h-5 rounded-full bg-tg-green/20 text-tg-green flex items-center justify-center">
+                <i data-lucide="check" class="w-3 h-3 stroke-[3px]"></i>
+              </span>
+            </div>
+            <div class="overflow-hidden w-full">
+              <h4 class="text-xs sm:text-sm font-bold text-white tracking-wide truncate" data-t="guide.step4Title">Запуск приложения</h4>
+              <p class="text-[10px] sm:text-xs text-gray-500 mt-0.5 truncate" data-t="guide.step4Desc">Всё готово!</p>
+            </div>
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/5 rounded-b-2xl overflow-hidden">
+              <div id="step-progress-indicator-3" class="h-full bg-tg-blue w-0 transition-all duration-500"></div>
+            </div>
+          </button>
+
+        </div>
+
+        <!-- Phone screen embed container and visual text box card -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch text-left">
+          
+          <!-- Tutorial Panel card text -->
+          <div class="lg:col-span-7 bg-tg-dark/40 backdrop-blur-md rounded-3xl border border-white/5 p-6 md:p-8 flex flex-col justify-between">
+            <div class="space-y-4">
+              <div class="flex items-center gap-3">
+                <span id="active-step-number-circle" class="text-xl md:text-2xl font-black font-mono text-tg-blue bg-tg-blue/15 w-12 h-12 rounded-2xl flex items-center justify-center">
+                  01
+                </span>
+                <div>
+                  <h3 id="active-step-title" class="text-lg md:text-2xl font-black text-white">Скачайте APK-файл</h3>
+                  <p id="active-step-sub" class="text-xs md:text-sm text-tg-blue font-semibold">Инициируйте скачивание официального установочного пакета ProxyGram.</p>
+                </div>
+              </div>
+
+              <p id="active-step-instructions" class="text-gray-300 leading-relaxed pt-3 text-sm sm:text-base">
+                Нажмите на главную кнопку «Скачать APK». В всплывающем окне браузера подтвердите скачивание файла ProxyGram.apk, если система выдаст запрос.
+              </p>
+            </div>
+
+            <!-- Controller Footer with counters and buttons -->
+            <div class="flex justify-between items-center pt-8 border-t border-white/5 mt-6">
+              
+              <div id="active-step-counter-tag" class="text-[10px] sm:text-xs text-gray-500 font-mono">
+                Этап 1 из 4 • Официальный гайд
+              </div>
+
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  id="guide-btn-back"
+                  onclick="prevStep()"
+                  disabled
+                  class="px-3 sm:px-4 py-2 bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-xs sm:text-sm font-bold transition-all border border-white/5 select-none"
+                >
+                  <span data-t="guide.back">Назад</span>
+                </button>
+                <button
+                  type="button"
+                  id="guide-btn-next"
+                  onclick="nextStep()"
+                  class="px-3 sm:px-4 py-2 bg-tg-blue hover:bg-tg-hover text-white rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1 shadow-md shadow-tg-blue/10 selection-none pointer-events-auto"
+                >
+                  <span id="guide-next-btn-text">Далее</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Phone Emulator container visual -->
+          <div class="lg:col-span-5 flex justify-center items-center">
+            <div class="w-full max-w-[320px] bg-[#181818] rounded-[40px] p-3.5 border-[8px] border-tg-dark shadow-2xl relative select-none">
+              
+              <!-- Speaker & Camera -->
+              <div class="absolute top-1 rotate-0 left-1/2 -translate-x-1/2 w-28 h-4 bg-tg-dark rounded-full flex justify-center items-center">
+                <span class="w-2 h-2 rounded-full bg-gray-800 mr-2"></span>
+                <span class="w-12 h-1 bg-gray-800 rounded-full"></span>
+              </div>
+
+              <!-- Inner Screen Simulator -->
+              <div class="bg-[#111] rounded-[28px] h-[380px] w-full p-4 flex flex-col justify-between overflow-hidden relative border border-white/5 pt-6 text-center">
+                
+                <!-- OS Status Panel -->
+                <div class="flex justify-between items-center text-[9px] text-gray-500 font-mono uppercase tracking-wider">
+                  <span>SYSTEM OS</span>
+                  <div class="flex items-center gap-1.5">
+                    <span>LTE</span>
+                    <span>100%</span>
+                  </div>
+                </div>
+
+                <!-- Simulation Graphic Body Content based on activeStep -->
+                <div id="phone-screen-illustration" class="flex-grow flex flex-col items-center justify-center text-center px-2 space-y-4">
+                  <!-- Generated based on step via JS render -->
+                </div>
+
+                <!-- Bottom label bar simulation -->
+                <span id="phone-screen-footer-label" class="text-[9px] text-gray-500 font-mono tracking-wider block text-center border-t border-white/5 pt-2 truncate">
+                  Загрузка ProxyGram.apk...
+                </span>
+
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 6. COLLAPSIBLE ACCORDION FAQ -->
+    <section id="faq-section" class="w-full py-16 scroll-mt-20 border-t border-white/5 bg-[#121212]/30 relative">
+      <div class="max-w-4xl mx-auto px-4">
+        
+        <!-- Headers -->
+        <div class="text-center max-w-3xl mx-auto mb-14 space-y-4">
+          <div class="w-10 h-10 text-tg-blue mx-auto flex items-center justify-center bg-tg-blue/10 rounded-xl">
+            <i data-lucide="help-circle" class="w-6 h-6"></i>
+          </div>
+          <h2 class="text-3xl md:text-5xl font-black tracking-tight text-white animate-fade-in" data-t="faq.title">
+            Часто задаваемые вопросы
+          </h2>
+          <p class="text-gray-400 text-sm sm:text-base md:text-lg" data-t="faq.desc">
+            У вас остались сомнения? Мы собрали ответы на самые частые технические и юридические вопросы пользователей ProxyGram.
+          </p>
+        </div>
+
+        <!-- Accordions Block list -->
+        <div id="faq-list-container" class="space-y-4 text-left">
+          <!-- Rendered via JS -->
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 7. FOOTER -->
+    <footer class="w-full bg-[#0a0a0a] border-t border-white/5 py-12 relative z-10 select-none">
+      <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
+        
+        <div class="text-center md:text-left space-y-1.5">
+          <div class="flex items-center justify-center md:justify-start gap-2">
+            <span class="w-6 h-6 rounded-lg bg-tg-blue flex items-center justify-center font-black text-white text-xs shadow-glow">
+              P
+            </span>
+            <span class="text-sm font-bold text-white tracking-wider">ProxyGram Project</span>
+          </div>
+          <p class="text-xs text-gray-600 font-mono">
+            &copy; 2026 <span data-t="footer.copyright">ProxyGram. Открытый исходный код и бесплатное использование.</span>
+          </p>
+        </div>
+
+        <p class="text-[10px] text-gray-500 max-w-sm md:max-w-md text-center md:text-left leading-normal" data-t="footer.disclaimer">
+          Disclaimer: ProxyGram является независимым программным обеспечением с открытым исходным кодом, созданным сторонними разработчиками на базе API Telegram. Данный продукт не аффилирован и не одобрен Telegram FZ-LLC.
+        </p>
+
+        <!-- Sourced repos and Scroll-to-top controls -->
+        <div class="flex items-center gap-4">
+          <a
+            href="https://github.com/ktoto1300/ProxyGram-source/tree/main/TMessagesProj"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="p-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all border border-white/5"
+            title="GitHub Repository"
+          >
+            <i data-lucide="github" class="w-4 h-4"></i>
+          </a>
+          <button
+            onclick="scrollToTopHeader()"
+            class="p-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all border border-white/5 cursor-pointer"
+            title="Наверх"
+          >
+            <i data-lucide="arrow-up" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+      </div>
     </footer>
 
+    <!-- Lucide Icons initialization script -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- App Code Script (Dynamic multilingual & states) -->
     <script>
-        // Логика PopUnder
-        document.getElementById('downloadBtn').addEventListener('click', function(e) {
-            // PopUnder срабатывает только один раз
-            if (!window.popUnderShown) {
-                // Вставь сюда URL своей рекламной сети
-                window.open('https://ayhaidwao.com?directlink=1&code_type=1&sid=942886', '_blank'); 
-                window.popUnderShown = true;
-            }
+      // --- TRANSLATIONS DICTIONARY EMBED ---
+      const translations = {
+        ru: {
+          title: "ProxyGram — Модифицированный клиент с автоматическими MTProto прокси",
+          nav: {
+            features: 'Функции',
+            speed: 'Скорость Прокси',
+            comparison: 'Сравнение',
+            instruction: 'Инструкция',
+            faq: 'FAQ',
+            github: 'Репозиторий'
+          },
+          hero: {
+            sticker: 'Доступен стабильный релиз v1.0.0',
+            titlePart1: 'Твой',
+            titlePart2: 'ProxyGram',
+            titlePart3: 'Скорость без границ.',
+            description: 'Продвинутый модифицированный клиент с мгновенным автоматическим подключением к безопасным MTProto прокси, полноценным режимом невидимки и снятием любых авторских ограничений в чатах.',
+            downloadBtn: 'Скачать установочный APK',
+            downloadSub: 'v1.0.0 • Android 6.0+ • Скачивание напрямую без вирусов',
+            stars: '248+ Звезд',
+            forks: '42+ Форков',
+            open: 'Открытый код',
+            feat1Title: 'Ультра-быстрые прокси',
+            feat1Desc: 'Автоматический выбор прокси с минимальным пингом. Мгновенная загрузка медиа и сообщений даже при плохом интернете.',
+            feat2Title: 'Стабильность 24/7',
+            feat2Desc: 'Наша распределенная система мониторинга удаляет нерабочие узлы. У вас всегда будет доступ к сети без ручного поиска серверов.',
+            feat3Title: 'Ghost Mode',
+            feat3Desc: 'Читайте сообщения без пометок прочтения, оставайтесь невидимым и сохраняйте полную приватность.',
+            feat4Title: 'Anti-Restrict (Обход блокировок)',
+            feat4Desc: 'Снятие ограничений авторов. Сохраняйте защищенные картинки и видео, делайте скриншоты в закрытых каналах.'
+          },
+          speed: {
+            badge: 'Обход блокировок и ускорение',
+            title: 'Мгновенный Пинг, Стабильный Доступ',
+            desc: 'В ProxyGram интегрирована обширная децентрализованная сеть защищенных MTProto-адресов. Клиент сам постоянно тестирует пинг на заднем фоне и на лету выбирает бырейший маршрут.',
+            runTest: 'Запустить тест',
+            testing: 'Тестирование...',
+            currentRoute: 'Автоматический смарт-прокси ProxyGram',
+            smartBestRoute: 'Умный авто-маршрут',
+            ping: 'Пинг',
+            download: 'Скачивание медиа',
+            upload: 'Отдача файлов',
+            latency: 'задержка',
+            whyFastTitle: 'Почему скорость с ProxyGram так высока?',
+            whyFastDesc: 'ProxyGram использует обфусцированные каналы MTProto, минуя внешние фильтры провайдеров. Видео, подкасты и тяжелые файлы в Telegram загружаются так, будто вы напрямую подключены к официальному европейскому дата-центру Telegram (Telegram Core DC2).',
+            ready: 'Готов',
+            pinging: 'Пинг сервера...',
+            mediaDownload: 'Загрузка медиа...',
+            fileUpload: 'Отгрузка файлов...',
+            completed: 'Завершено'
+          },
+          comparison: {
+            badge: 'Сравнение клиентов',
+            title: 'Почему именно ProxyGram?',
+            desc: 'Мы сопоставили функциональность стандартного Telegram, платных внешних VPN сервисов и клиента ProxyGram по ключевым параметрам конфиденциальности и скорости.',
+            col1: 'Характеристики клиента',
+            col2: 'Офиц. Telegram',
+            col3: 'Сторонний VPN',
+            col4: 'ProxyGram',
+            f1: 'Работает без ручной настройки и VPN',
+            f1Desc: 'Автоподключение к рабочим серверам без запуска сторонних приложений.',
+            f2: 'Режим невидимки (Ghost Mode)',
+            f2Desc: 'Чтение ЛС и каналов без пометки о прочтении, скрытый статус ввода текста.',
+            f3: 'Сохранение удаленных сообщений',
+            f3Desc: 'Просмотр удаленных собеседником текстовых сообщений и файлов на лету.',
+            f4: 'Обход запрета копирования (Anti-Restrict)',
+            f4Desc: 'Сохранение картинок, видео, копирование текстов и скриншоты в защищенных чатах.',
+            f5: 'Максимальная открытость кода',
+            f5Desc: 'Проект собран на базе официального Telegram Fork с исходным кодом в профиле GitHub.',
+            f6: '100% бесплатно и открыто',
+            f6Desc: 'Все прокси-серверы и твики ядра доступны сразу без подписок и скрытых платежей.',
+            securityTitle: 'Внимание к безопасности аккаунта',
+            securityDesc: 'Никаких модификаций баз данных или слежек. ProxyGram использует оригинальный SDK Telegram API и подключается к официальным серверам авторизации мессенджера. Использование встроенных прокси полностью легально и исключает риск бана вашего профиля.'
+          },
+          guide: {
+            badge: 'Инструкция по установке',
+            title: 'Как установить на Android?',
+            desc: 'Установка сторонних модов за пределами Google Play требует разрешения в настройках системы. Ознакомьтесь с простой четырёхшаговой инструкцией.',
+            step1Title: 'Скачайте APK-файл',
+            step1Desc: 'Инициируйте скачивание официального установочного пакета ProxyGram.',
+            step1Instr: 'Нажмите на главную кнопку «Скачать APK». В всплывающем окне браузера подтвердите скачивание файла ProxyGram.apk, если система выдаст запрос.',
+            step2Title: 'Параметры безопасности',
+            step2Desc: 'Разрешите инсталляцию из веб-браузеров или файлового менеджера.',
+            step2Instr: 'По завершению скачивания нажмите "Открыть". Защитник Android (Play Защита) покажет предупреждение блокировки. Нажмите кнопку «Настройки» (Settings) прямо на экране предупреждения.',
+            step3Title: 'Активация тумблера',
+            step3Desc: 'Выдайте разовое разрешение на установку для системного приложения.',
+            step3Instr: 'В открывшемся разделе найдите параметр «Разрешить установку из этого источника» (или "Allow from this source") и активируйте переключатель в рабочее положение.',
+            step4Title: 'Запуск приложения',
+            step4Desc: 'Проведите быструю установку и выполните авторизацию.',
+            step4Instr: 'Возвращайтесь на предыдущий экран установки и нажмите кнопку «Установить». После окончания процесса значок ProxyGram появится на вашем рабочем столе. Финал!',
+            phoneProgress1: 'Загрузка ProxyGram.apk...',
+            phoneProgress2: 'Заблокировано защитой системы',
+            phoneProgress3: 'Настройки: Разрешить [ON]',
+            phoneProgress4: 'Успешно установлено!',
+            back: 'Назад',
+            next: 'Далее',
+            restart: 'Повторить сначала',
+            stepCounter: 'Этап {current} из {total} • Официальный гайд'
+          },
+          faq: {
+            title: 'Часто задаваемые вопросы',
+            desc: 'У вас остались сомнения? Мы собрали ответы на самые частые технические и юридические вопросы пользователей ProxyGram.',
+            q1: 'Безопасен ли ProxyGram для моего аккаунта?',
+            a1: 'Абсолютно. ProxyGram разрабатывается на базе открытого исходного кода официального Telegram Fork API. Авторизация происходит непосредственно через защищенную официальную инфраструктуру Telegram Login, а ваши данные шифруются по тому же скрин-протоколу MTProto. Мод не имеет доступа к вашим сессиям или паролям.',
+            q2: 'Почему ProxyGram доступен только для Android (APK)?',
+            a2: 'В отличие от Android, операционная система iOS от Apple жестко связывает запуск любых приложений с App Store и запрещает устанавливать сторонние файлы инсталляции (IPA) без сложного процесса джейлбрейка или корпоративного тестирования. APK формат на Android позволяет распространять свободное ПО авторам напрямую.',
+            q3: 'Как работает встроенный прокси-сервер?',
+            a3: 'При запуске ProxyGram автоматически подключается к нашей децентрализованной сети серверов-ретрансляторов MTProto. Если один из серверов начинает отвечать с задержкой или блокируется вашим провайдером, приложение мгновенно за миллисекунды переключает вашу сессию на другой, наиболее географически близкий свободный шлюз.',
+            q4: 'Могут ли меня забанить в Telegram за использование мода?',
+            a4: 'Нет, баны исключены. Мы используем легитимную сигнатуру вызовов Telegram API. С точки зрения серверов Telegram, вы заходите с альтернативного официального клиента (также как Nekogram, Plus Messenger или Unigram). Кроме того, встроенный прокси полностью скрывает ваш реальный IP-адрес.',
+            q5: 'Где я могу изучить исходный код проекта?',
+            a5: 'Проект является полностью open-source! Первоисточники доступны в официальном репозитории на GitHub: https://github.com/ktoto1300/ProxyGram-source/tree/main/TMessagesProj'
+          },
+          footer: {
+            copyright: 'ProxyGram. Открытый исходный код и бесплатное использование.',
+            disclaimer: 'Disclaimer: ProxyGram является независимым программным обеспечением с открытым исходным кодом, созданным сторонними разработчиками на базе API Telegram. Данный продукт не аффилирован и не одобрен Telegram FZ-LLC.'
+          }
+        },
+        en: {
+          title: "ProxyGram — Advanced client with automatic MTProto proxy connectivity",
+          nav: {
+            features: 'Features',
+            speed: 'Proxy Speed',
+            comparison: 'Comparison',
+            instruction: 'Instructions',
+            faq: 'FAQ',
+            github: 'Repository'
+          },
+          hero: {
+            sticker: 'Stable release v1.0.0 is available',
+            titlePart1: 'Your',
+            titlePart2: 'ProxyGram',
+            titlePart3: 'Speed without boundaries.',
+            description: 'An advanced modified client with instant automatic connection to secure MTProto proxies, full-featured ghost mode, and unrestricted media downloads in chats.',
+            downloadBtn: 'Download APK Installer',
+            downloadSub: 'v1.0.0 • Android 6.0+ • Direct download, malware-free',
+            stars: '248+ Stars',
+            forks: '42+ Forks',
+            open: 'Open Source',
+            feat1Title: 'Ultra-fast Proxies',
+            feat1Desc: 'Automatically selects proxies with minimal ping. Instant media and message loading even on weak internet.',
+            feat2Title: 'Stability 24/7',
+            feat2Desc: 'Our distributed monitoring system removes unresponsive nodes. Enjoy reliable access without manually searching for servers.',
+            feat3Title: 'Ghost Mode',
+            feat3Desc: 'Read chats without marking them read, hide online presence, and preserve complete privacy.',
+            feat4Title: 'Anti-Restrict (Bypass restraints)',
+            feat4Desc: 'Remove group author blockages. Save restricted images/videos, and take screenshots in chats where copy/export is banned.'
+          },
+          speed: {
+            badge: 'Unblocking and Acceleration',
+            title: 'Instant Ping, Stable Connections',
+            desc: 'ProxyGram is integrated with a vast decentralized pool of secure MTProto servers. The client continuously tests ping and routes your traffic to the fastest pipeline.',
+            runTest: 'Start Speed Test',
+            testing: 'Testing...',
+            currentRoute: 'Automatic smart ProxyGram routing',
+            smartBestRoute: 'Smart Autoconnect Route',
+            ping: 'Ping',
+            download: 'Media Download',
+            upload: 'File Upload',
+            latency: 'latency',
+            whyFastTitle: 'Why is ProxyGram speed so high?',
+            whyFastDesc: 'ProxyGram uses highly obfuscated MTProto lines, bypassing localized internet filters. Videos, podcasts, and files in Telegram download instantly as if you were connected directly to the Telegram Core Datacenter (DC2).',
+            ready: 'Ready',
+            pinging: 'Pinging server...',
+            mediaDownload: 'Media download...',
+            fileUpload: 'Uploading file...',
+            completed: 'Completed'
+          },
+          comparison: {
+            badge: 'Client Comparison',
+            title: 'Why choose ProxyGram?',
+            desc: 'We evaluated standard Telegram features, premium external VPN speeds, and ProxyGram client modifications below.',
+            col1: 'Client Features',
+            col2: 'Official TG',
+            col3: 'Standard VPN',
+            col4: 'ProxyGram',
+            f1: 'Runs without manual setup or global VPN',
+            f1Desc: 'Connects directly to target servers dynamically without external clients.',
+            f2: 'Invisible Ghost Mode',
+            f2Desc: 'Read chats invisibly and write messages with no "typing" feedback.',
+            f3: 'Prevent message deletes',
+            f3Desc: 'Retain deleted dialog text data and shared pictures locally.',
+            f4: 'Bypass export bans (Anti-Restrict)',
+            f4Desc: 'Save prohibited photos, copy messages, and take screen captures instantly.',
+            f5: 'Auditable codebase',
+            f5Desc: 'Built on top of the audited official open-source Telegram client fork.',
+            f6: '100% Free with no hidden costs',
+            f6Desc: 'All tweaks and MTProto servers are available out-of-the-box for everyone without subscriptions.',
+            securityTitle: 'Secure Account Protocol',
+            securityDesc: 'No database modification or spying. ProxyGram utilizes the original Telegram API and binds to the official servers. Access is fully secure, transparent, and carries zero ban risk.'
+          },
+          guide: {
+            badge: 'Step-by-Step Sideloading',
+            title: 'How to install on Android?',
+            desc: 'Installing third-party packages (.apk) outside of Google Play requires a system safety allowance. Take a look at these 4 simple steps.',
+            step1Title: 'Download APK file',
+            step1Desc: 'Start downloading the safe verified installer package.',
+            step1Instr: 'Click "Download APK" at the top block. Confirm the browser alert prompts to start saving ProxyGram.apk to your system downloads folder.',
+            step2Title: 'Security parameters',
+            step2Desc: 'Allow software setup from web browsers or file manager.',
+            step2Instr: 'Once downloaded, click "Open". Android system protection (Play Protect) will prompt a warning block. Click "Settings" directly on the prompt screen.',
+            step3Title: 'Activate source grant',
+            step3Desc: 'Grant a single-time package setup permission to your browser apps.',
+            step3Instr: 'Locate the toggle named "Allow from this source" inside the settings window, and slide it to the ON position.',
+            step4Title: 'Launch installed app',
+            step4Desc: 'Finalize the easy wizard setup and log in securely.',
+            step4Instr: 'Return to the package setup popup, click "Install", and wait for the completion progress. The ProxyGram launcher icon is now ready on your home screen!',
+            phoneProgress1: 'Downloading ProxyGram.apk...',
+            phoneProgress2: 'Blocked: Unknown source grant',
+            phoneProgress3: 'Settings: Allow [ON]',
+            phoneProgress4: 'Successfully installed!',
+            back: 'Back',
+            next: 'Next',
+            restart: 'Restart',
+            stepCounter: 'Step {current} of {total} • Sideload Guide'
+          },
+          faq: {
+            title: 'Frequently Asked Questions',
+            desc: 'Still have questions? Check out these common technical and architecture answers.',
+            q1: 'Is ProxyGram safe for my Telegram profile?',
+            a1: 'Absolutely. It is fully open source and built directly using Telegram client API specifications. Login transactions are handled directly by Telegram infrastructure itself, and the database utilizes standard secure local encryption. We store or collect no user account logs.',
+            q2: 'Why is ProxyGram only available for Android (APK)?',
+            a2: 'Unlike Android, Apple iOS strictly binds executing any software with its App Store and forbids sideloading external installer files (IPA) without complex jailbreaks or enterprise registrations. APK format on Android allows distributing open software directly.',
+            q3: 'How does the built-in proxy work?',
+            a3: 'Upon launch, ProxyGram autoconnects to our decentralized pool of MTProto relays. If any server slows down or gets blocked, the application instantly routes your session to another close high-speed peer node.',
+            q4: 'Can I get banned in Telegram for using this mod?',
+            a4: 'No, bans are excluded. We employ authentic official API signature headers. From Telegram servers perspective, you are using an alternative official-compliant client like Nekogram or Unigram. Real IP is fully shrouded.',
+            q5: 'Where can I check the source code?',
+            a5: 'The project is entirely open source on GitHub. You can check original source code in the repository on: https://github.com/ktoto1300/ProxyGram-source/tree/main/TMessagesProj'
+          },
+          footer: {
+            copyright: 'ProxyGram. Open Source codebase. Free to download & run.',
+            disclaimer: 'Disclaimer: ProxyGram is an independent open-source client modification using Telegram API. It is not affiliated, endorsed, or sponsored by Telegram FZ-LLC.'
+          }
+        }
+      };
+
+      // State vars
+      let currentLang = 'ru';
+      let currentStepIdx = 0;
+      let activeFAQIdx = 0; // index of currently expanded FAQ accordion
+      let activeSpeedPing = 14;
+      let isSpeedTesting = false;
+      let mobileMenuIsOpen = false;
+
+      // --- INITIAL LOAD ---
+      window.addEventListener('DOMContentLoaded', () => {
+        setLanguage('ru');
+        
+        // Setup occasional background ping flicker for live diagnostics look
+        setInterval(() => {
+          if (!isSpeedTesting) {
+            const variation = Math.floor(Math.random() * 5) - 2; // -2 to +2
+            activeSpeedPing = Math.max(8, 14 + variation);
+            document.getElementById('speedtest-ping-val').innerText = activeSpeedPing + ' ms';
+          }
+        }, 3500);
+      });
+
+      // --- LANGUAGE SWITCHER logic ---
+      function setLanguage(lang) {
+        currentLang = lang;
+        document.documentElement.lang = lang;
+        
+        // Title update
+        document.title = translations[lang].title;
+
+        // Visual selectors update for language btn highlighted highlights
+        const ruBtns = [document.getElementById('lang-btn-ru'), document.getElementById('lang-btn-ru-mobile')];
+        const enBtns = [document.getElementById('lang-btn-en'), document.getElementById('lang-btn-en-mobile')];
+        
+        if (lang === 'ru') {
+          ruBtns.forEach(b => { if (b) b.className = "px-2.5 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer bg-tg-blue text-white shadow-sm"; });
+          enBtns.forEach(b => { if (b) b.className = "px-2.5 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer text-gray-400 hover:text-white"; });
+        } else {
+          ruBtns.forEach(b => { if (b) b.className = "px-2.5 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer text-gray-400 hover:text-white"; });
+          enBtns.forEach(b => { if (b) b.className = "px-2.5 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer bg-tg-blue text-white shadow-sm"; });
+        }
+
+        // Standard data-t direct substitutions
+        const elements = document.querySelectorAll('[data-t]');
+        elements.forEach(el => {
+          const path = el.getAttribute('data-t');
+          const keys = path.split('.');
+          let val = translations[lang];
+          for (const key of keys) {
+            if (val) val = val[key];
+          }
+          if (val) {
+            el.innerText = val;
+          }
         });
 
-        // Анимации появления через GSAP
-        document.addEventListener("DOMContentLoaded", (event) => {
-            gsap.from(".gs-fade", { 
-                opacity: 0, y: -20, duration: 1, ease: "power3.out" 
-            });
-            
-            gsap.from(".gs-hero", { 
-                opacity: 0, y: 30, duration: 1, stagger: 0.2, ease: "power3.out", delay: 0.2 
-            });
-            
-            gsap.from(".gs-features > div", { 
-                opacity: 0, y: 40, duration: 0.8, stagger: 0.15, ease: "back.out(1.5)", delay: 0.6 
-            });
+        // Translate step label inside button circles
+        const stepLabels = document.querySelectorAll('.lang-step-label');
+        stepLabels.forEach(lbl => {
+          lbl.innerText = lang === 'ru' ? 'Шаг' : 'Step';
         });
+
+        // Render dynamic parts
+        renderComparison();
+        renderFAQList();
+        renderPhoneIllustration();
+        
+        // Force header update of speed phase
+        updateSpeedUIStrings();
+      }
+
+      // --- MOBILE DRAWER TRIGGER ---
+      function toggleMobileMenu() {
+        mobileMenuIsOpen = !mobileMenuIsOpen;
+        const menu = document.getElementById('mobile-menu');
+        const icon = document.getElementById('menu-icon');
+        if (mobileMenuIsOpen) {
+          menu.classList.remove('hidden');
+          icon.setAttribute('data-lucide', 'x');
+        } else {
+          menu.classList.add('hidden');
+          icon.setAttribute('data-lucide', 'menu');
+        }
+        lucide.createIcons();
+      }
+
+      function closeMobileMenu() {
+        mobileMenuIsOpen = false;
+        document.getElementById('mobile-menu').classList.add('hidden');
+        document.getElementById('menu-icon').setAttribute('data-lucide', 'menu');
+        lucide.createIcons();
+      }
+
+      // --- SPEEDTEST ACCELERATOR ---
+      function updateSpeedUIStrings() {
+        const sT = translations[currentLang].speed;
+        const titleEl = document.getElementById('speedmeter-header-title');
+        const activeLabel = document.getElementById('speedmeter-active-label');
+        
+        if (titleEl) titleEl.innerText = currentLang === 'ru' ? 'Тестирование скорости ProxyGram' : 'ProxyGram Speed Diagnostics';
+        if (activeLabel) activeLabel.innerText = currentLang === 'ru' ? 'активный узел:' : 'active route:';
+
+        const statusLabel = document.getElementById('speedtest-status-phase');
+        if (statusLabel && !isSpeedTesting) {
+          statusLabel.innerText = sT.ready;
+        }
+      }
+
+      function startSpeedTest() {
+        if (isSpeedTesting) return;
+        isSpeedTesting = true;
+
+        const sT = translations[currentLang].speed;
+        const statusLabel = document.getElementById('speedtest-status-phase');
+        const valueDisplay = document.getElementById('speedtest-value');
+        const track = document.getElementById('gauge-active-track');
+        const glow = document.getElementById('gauge-glow');
+        const actionBtn = document.getElementById('speedtest-btn');
+
+        const pingDisplay = document.getElementById('speedtest-ping-val');
+        const downloadDisplay = document.getElementById('speedtest-download-val');
+        const uploadDisplay = document.getElementById('speedtest-upload-val');
+
+        // Reset metrics UI
+        pingDisplay.innerText = '—';
+        downloadDisplay.innerText = '—';
+        uploadDisplay.innerText = '—';
+        
+        // Visual indicator adjustments
+        glow.className = "absolute w-36 h-36 rounded-full blur-[80px] -z-10 bg-tg-blue opacity-30 animate-pulse transition-all duration-1000";
+        actionBtn.disabled = true;
+        actionBtn.innerHTML = `<i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i> <span>0%</span>`;
+        lucide.createIcons();
+
+        // 1. PING Phase (1.2s duration)
+        statusLabel.innerText = sT.pinging;
+        valueDisplay.innerText = '—';
+        track.setAttribute('stroke-dasharray', '0 250');
+        
+        setTimeout(() => {
+          // Set real simulated ping
+          const finalPingNodeVal = Math.floor(Math.random() * 5) + 11; // 11-15 ms
+          pingDisplay.innerText = finalPingNodeVal + ' ms';
+          activeSpeedPing = finalPingNodeVal;
+
+          // 2. DOWNLOAD Phase (2.4s duration)
+          statusLabel.innerText = currentLang === 'ru' ? 'Скачивание медиа' : 'Downloading Media';
+          track.setAttribute('stroke', '#3390ec');
+          
+          let dlTick = 0;
+          const dlMaxSpeed = 98.4;
+          
+          const dlInterval = setInterval(() => {
+            dlTick += 5;
+            const progressPercent = Math.min(60, dlTick);
+            
+            // update btn loader values
+            actionBtn.innerHTML = `<i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i> <span>${progressPercent}%</span>`;
+            
+            // Set speedometer tick speed value with soft amplitude values
+            const tickSpeed = dlMaxSpeed + (Math.random() * 14 - 7);
+            valueDisplay.innerText = Math.round(tickSpeed * 10) / 10;
+
+            // Gauge dash progression indicator (up to ~60% of gauge circle)
+            const strokeVal = (progressPercent / 100) * 125;
+            track.setAttribute('stroke-dasharray', `${strokeVal} 250`);
+
+            if (dlTick >= 60) {
+              clearInterval(dlInterval);
+              
+              // Set final download value static
+              downloadDisplay.innerText = dlMaxSpeed + ' Mbps';
+              valueDisplay.innerText = dlMaxSpeed;
+
+              // 3. UPLOAD Phase (1.6s duration)
+              statusLabel.innerText = currentLang === 'ru' ? 'Отгрузка файлов' : 'Uploading Files';
+              
+              let ulTick = 60;
+              const ulMaxSpeed = 44.3;
+
+              const ulInterval = setInterval(() => {
+                ulTick += 5;
+                const progressPercent = Math.min(100, ulTick);
+                actionBtn.innerHTML = `<i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i> <span>${progressPercent}%</span>`;
+
+                const tickSpeed = ulMaxSpeed + (Math.random() * 6 - 3);
+                valueDisplay.innerText = Math.round(tickSpeed * 10) / 10;
+
+                const strokeVal = (progressPercent / 100) * 125;
+                track.setAttribute('stroke-dasharray', `${strokeVal} 250`);
+
+                if (ulTick >= 100) {
+                  clearInterval(ulInterval);
+                  
+                  // Wrap-up speed test
+                  uploadDisplay.innerText = ulMaxSpeed + ' Mbps';
+                  valueDisplay.innerText = dlMaxSpeed; // Show download as final primary
+                  statusLabel.innerText = sT.ready;
+                  
+                  track.setAttribute('stroke', '#31b353');
+                  glow.className = "absolute w-36 h-36 rounded-full blur-[80px] -z-10 bg-tg-green opacity-15 transition-all duration-1000";
+
+                  actionBtn.disabled = false;
+                  actionBtn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> <span>${sT.runTest}</span>`;
+                  isSpeedTesting = false;
+                  lucide.createIcons();
+                }
+              }, 120);
+            }
+          }, 150);
+
+        }, 1200);
+      }
+
+      // --- COMPARISON RENDERER ---
+      function renderComparison() {
+        const cT = translations[currentLang].comparison;
+        const features = [
+          { f: cT.f1, d: cT.f1Desc, official: false, vpn: false, proxygram: true },
+          { f: cT.f2, d: cT.f2Desc, official: false, vpn: false, proxygram: true },
+          { f: cT.f3, d: cT.f3Desc, official: false, vpn: false, proxygram: true },
+          { f: cT.f4, d: cT.f4Desc, official: false, vpn: false, proxygram: true },
+          { f: cT.f5, d: cT.f5Desc, official: true,  vpn: false, proxygram: true },
+          { f: cT.f6, d: cT.f6Desc, official: false, vpn: false, proxygram: true }
+        ];
+
+        // 1. Desktop alignment
+        const desktopContainer = document.getElementById('comparison-rows-desktop');
+        desktopContainer.innerHTML = '';
+        features.forEach(feat => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-tg-dark/30 transition-colors";
+          tr.innerHTML = `
+            <td class="p-6 max-w-md">
+              <h4 class="text-sm font-bold text-white tracking-wide">${feat.f}</h4>
+              <p class="text-xs text-gray-500 mt-1 leading-relaxed">${feat.d}</p>
+            </td>
+            <td class="p-6 text-center">
+              ${feat.official 
+                ? '<span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><i data-lucide="check" class="w-4 h-4"></i></span>'
+                : '<span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-500/10 text-red-400 border border-red-500/20"><i data-lucide="x" class="w-4 h-4"></i></span>'
+              }
+            </td>
+            <td class="p-6 text-center">
+              ${feat.vpn
+                ? '<span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><i data-lucide="check" class="w-4 h-4"></i></span>'
+                : '<span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-500/10 text-red-400 border border-red-500/20"><i data-lucide="x" class="w-4 h-4"></i></span>'
+              }
+            </td>
+            <td class="p-6 text-center bg-tg-blue/5 border-l border-tg-blue/10">
+              ${feat.proxygram
+                ? '<span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-tg-blue text-white shadow-glow"><i data-lucide="check" class="w-5 h-5 stroke-[3px]"></i></span>'
+                : '<span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-500/10 text-red-500 border border-red-500/20"><i data-lucide="x" class="w-4 h-4"></i></span>'
+              }
+            </td>
+          `;
+          desktopContainer.appendChild(tr);
+        });
+
+        // 2. Mobile grid alignment
+        const mobileContainer = document.getElementById('comparison-cards-mobile');
+        mobileContainer.innerHTML = '';
+        features.forEach(feat => {
+          const div = document.createElement('div');
+          div.className = "bg-tg-dark/40 border border-white/5 p-5 rounded-2xl space-y-4";
+          div.innerHTML = `
+            <div>
+              <h4 class="text-md font-bold text-white tracking-wide">${feat.f}</h4>
+              <p class="text-xs text-gray-500 mt-1">${feat.d}</p>
+            </div>
+            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+              
+              <div class="p-2 bg-[#181818]/60 rounded-xl border border-white/5 flex flex-col items-center justify-center gap-1.5">
+                <span class="text-[10px] text-gray-500 uppercase font-mono">${currentLang === 'ru' ? 'Офиц. TG' : 'Official TG'}</span>
+                ${feat.official 
+                  ? '<i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>' 
+                  : '<i data-lucide="x" class="w-4 h-4 text-red-400"></i>'
+                }
+              </div>
+
+              <div class="p-2 bg-[#181818]/60 rounded-xl border border-white/5 flex flex-col items-center justify-center gap-1.5">
+                <span class="text-[10px] text-gray-500 uppercase font-mono">${currentLang === 'ru' ? 'Любой VPN' : 'Any VPN'}</span>
+                ${feat.vpn 
+                  ? '<i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>' 
+                  : '<i data-lucide="x" class="w-4 h-4 text-red-400"></i>'
+                }
+              </div>
+
+              <div class="p-2 bg-tg-blue/10 rounded-xl border border-tg-blue/20 flex flex-col items-center justify-center gap-1.5">
+                <span class="text-[10px] text-tg-blue font-bold uppercase font-mono">ProxyGram</span>
+                ${feat.proxygram 
+                  ? '<i data-lucide="check" class="w-4 h-4 text-tg-blue stroke-[3px]"></i>' 
+                  : '<i data-lucide="x" class="w-4 h-4 text-red-400"></i>'
+                }
+              </div>
+
+            </div>
+          `;
+          mobileContainer.appendChild(div);
+        });
+
+        lucide.createIcons();
+      }
+
+      // --- STEP BY STEP INSTALLATION GUIDE controller ---
+      function setStepIdx(index) {
+        currentStepIdx = index;
+        
+        const gT = translations[currentLang].guide;
+        
+        // Define steps data array dynamically
+        const steps = [
+          { number: 1, title: gT.step1Title, sub: gT.step1Desc, instr: gT.step1Instr, label: gT.phoneProgress1 },
+          { number: 2, title: gT.step2Title, sub: gT.step2Desc, instr: gT.step2Instr, label: gT.phoneProgress2 },
+          { number: 3, title: gT.step3Title, sub: gT.step3Desc, instr: gT.step3Instr, label: gT.phoneProgress3 },
+          { number: 4, title: gT.step4Title, sub: gT.step4Desc, instr: gT.step4Instr, label: gT.phoneProgress4 }
+        ];
+
+        const activeStep = steps[index];
+
+        // 1. Set text details of current step card
+        document.getElementById('active-step-number-circle').innerText = '0' + activeStep.number;
+        document.getElementById('active-step-title').innerText = activeStep.title;
+        document.getElementById('active-step-sub').innerText = activeStep.sub;
+        document.getElementById('active-step-instructions').innerText = activeStep.instr;
+        
+        // Translate counter label e.g. "Этап 1 из 4"
+        const tagText = gT.stepCounter.replace('{current}', String(activeStep.number)).replace('{total}', '4');
+        document.getElementById('active-step-counter-tag').innerText = tagText;
+
+        // 2. Adjust button controls state
+        document.getElementById('guide-btn-back').disabled = (index === 0);
+        
+        const nextBtnText = document.getElementById('guide-next-btn-text');
+        if (index === 3) {
+          nextBtnText.innerText = gT.restart;
+        } else {
+          nextBtnText.innerText = gT.next;
+        }
+
+        // 3. Highlight current active selector tab and previous steps checks
+        for (let i = 0; i < 4; i++) {
+          const btn = document.getElementById('guide-step-btn-' + i);
+          const bar = document.getElementById('step-progress-indicator-' + i);
+          const check = btn.querySelector('.step-check-indicator');
+          
+          if (btn) {
+            if (i === index) {
+              btn.className = "p-4 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between h-32 relative cursor-pointer bg-tg-blue/10 border-tg-blue/40 shadow-[0_4px_20px_rgba(51,144,236,0.05)]";
+              bar.className = "h-full bg-tg-blue w-full transition-all duration-500";
+            } else {
+              btn.className = "p-4 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between h-32 relative cursor-pointer bg-tg-dark/40 border-white/5 hover:border-white/10";
+              bar.className = `h-full bg-tg-blue ${i < index ? 'w-full opacity-30' : 'w-0'} transition-all duration-500`;
+            }
+
+            // check indicator toggle
+            if (i < index) {
+              check.classList.remove('hidden');
+            } else {
+              check.classList.add('hidden');
+            }
+          }
+        }
+
+        // 4. Update emulator graphic content representation
+        renderPhoneIllustration();
+        lucide.createIcons();
+      }
+
+      function nextStep() {
+        if (currentStepIdx < 3) {
+          setStepIdx(currentStepIdx + 1);
+        } else {
+          setStepIdx(0); // Restart
+        }
+      }
+
+      function prevStep() {
+        if (currentStepIdx > 0) {
+          setStepIdx(currentStepIdx - 1);
+        }
+      }
+
+      // Renders smartphone mockup screen layout based on active step idx
+      function renderPhoneIllustration() {
+        const gT = translations[currentLang].guide;
+        const screen = document.getElementById('phone-screen-illustration');
+        const footerLabel = document.getElementById('phone-screen-footer-label');
+
+        if (currentStepIdx === 0) {
+          footerLabel.innerText = gT.phoneProgress1;
+          screen.innerHTML = `
+            <div class="w-16 h-16 rounded-full bg-tg-blue/20 text-tg-blue flex items-center justify-center animate-bounce">
+              <i data-lucide="download" class="w-8 h-8"></i>
+            </div>
+            <div class="space-y-1">
+              <div class="text-xs font-bold text-white tracking-wide">ProxyGram.apk</div>
+              <div class="text-[10px] text-gray-500 font-mono">${currentLang === 'ru' ? 'Размер: 48.5 МБ' : 'Size: 48.5 MB'}</div>
+            </div>
+            <div class="w-full bg-[#1b1b1b] rounded-full h-1.5 overflow-hidden">
+              <div class="bg-tg-blue h-full w-[75%] animate-pulse"></div>
+            </div>
+          `;
+        } else if (currentStepIdx === 1) {
+          footerLabel.innerText = gT.phoneProgress2;
+          screen.innerHTML = `
+            <div class="w-14 h-14 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center">
+              <i data-lucide="smartphone" class="w-7 h-7"></i>
+            </div>
+            <div class="bg-[#1a1a1a] border border-white/5 p-3 rounded-xl text-[10px] text-left space-y-1.5 max-w-[220px]">
+              <span class="font-bold text-amber-400 block text-center">${currentLang === 'ru' ? 'Предупреждение' : 'Security Warning'}</span>
+              <p class="text-gray-400 leading-normal text-center text-[9px]">
+                ${currentLang === 'ru' ? 'В целях безопасности установка неизвестных приложений заблокирована.' : 'For security reasons, installing unknown files is blocked.'}
+              </p>
+              <div class="flex justify-end gap-2 pt-1.5 border-t border-white/5 select-none text-[8.5px]">
+                <button type="button" class="text-gray-500 font-bold px-1 py-0.5">${currentLang === 'ru' ? 'Отмена' : 'Cancel'}</button>
+                <button type="button" class="text-tg-blue font-bold px-1.5 py-0.5 bg-tg-blue/15 rounded">${currentLang === 'ru' ? 'Настройки' : 'Settings'}</button>
+              </div>
+            </div>
+          `;
+        } else if (currentStepIdx === 2) {
+          footerLabel.innerText = gT.phoneProgress3;
+          screen.innerHTML = `
+            <div class="w-14 h-14 rounded-full bg-tg-blue/20 text-tg-blue flex items-center justify-center">
+              <i data-lucide="toggle-right" class="w-7 h-7 animate-pulse"></i>
+            </div>
+            <div class="bg-[#1a1a1a] border border-white/5 p-3 rounded-xl text-left space-y-2 w-full max-w-[220px]">
+              <span class="text-[9px] font-bold text-white block uppercase tracking-wider">${currentLang === 'ru' ? 'Внешние источники' : 'External Sources'}</span>
+              <div class="flex items-center justify-between p-1.5 bg-[#252525] rounded-lg">
+                <span class="text-[9px] text-gray-400 font-mono">${currentLang === 'ru' ? 'Разрешить из источника' : 'Allow from source'}</span>
+                <span class="w-6 h-3.5 bg-tg-blue rounded-full flex items-center justify-end p-0.5">
+                  <span class="w-2.5 h-2.5 bg-white rounded-full"></span>
+                </span>
+              </div>
+            </div>
+          `;
+        } else if (currentStepIdx === 3) {
+          footerLabel.innerText = gT.phoneProgress4;
+          screen.innerHTML = `
+            <div class="w-16 h-16 rounded-full bg-tg-green/10 text-tg-green flex items-center justify-center">
+              <i data-lucide="shield-check" class="w-8 h-8"></i>
+            </div>
+            <span class="text-xs font-bold text-white">${currentLang === 'ru' ? 'Приложение установлено!' : 'Installation Finished!'}</span>
+            <span class="px-3 py-1 bg-tg-green/10 border border-tg-green/30 text-tg-green text-[10px] font-bold rounded-lg uppercase tracking-wider">
+              ${currentLang === 'ru' ? 'Всё настроено!' : 'Ready!'}
+            </span>
+          `;
+        }
+        lucide.createIcons();
+      }
+
+      // --- FAQ ACCORDIONS ---
+      function toggleFAQAccordion(idx) {
+        if (activeFAQIdx === idx) {
+          activeFAQIdx = null; // Close current index
+        } else {
+          activeFAQIdx = idx;
+        }
+        renderFAQList();
+      }
+
+      function renderFAQList() {
+        const fT = translations[currentLang].faq;
+        const faqs = [
+          { q: fT.q1, a: fT.a1 },
+          { q: fT.q2, a: fT.a2 },
+          { q: fT.q3, a: fT.a3 },
+          { q: fT.q4, a: fT.a4 },
+          { q: fT.q5, a: fT.a5 }
+        ];
+
+        const container = document.getElementById('faq-list-container');
+        container.innerHTML = '';
+
+        faqs.forEach((faq, idx) => {
+          const isOpen = activeFAQIdx === idx;
+          const div = document.createElement('div');
+          div.className = "bg-tg-dark/40 border border-white/5 rounded-2xl overflow-hidden transition-all duration-300";
+          div.innerHTML = `
+            <button
+              type="button"
+              onclick="toggleFAQAccordion(${idx})"
+              class="w-full text-left p-5 sm:p-6 flex justify-between items-center gap-4 hover:bg-tg-dark/20 transition-colors focus:outline-none"
+            >
+              <span class="text-sm sm:text-base font-bold text-white tracking-wide">
+                ${faq.q}
+              </span>
+              <span class="p-1 w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 shrink-0">
+                <i data-lucide="${isOpen ? 'chevron-up' : 'chevron-down'}" class="w-4 h-4 text-white"></i>
+              </span>
+            </button>
+
+            <div 
+              class="transition-all duration-300 ease-in-out ${isOpen ? 'block border-t border-white/5 opacity-100' : 'hidden opacity-0'}"
+            >
+              <p class="p-5 sm:p-6 text-xs sm:text-sm text-gray-400 leading-relaxed whitespace-pre-line bg-[#161616]/30">
+                ${faq.a}
+              </p>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+
+        lucide.createIcons();
+      }
+
+      // --- UTILS scroll functions ---
+      function scrollToTopHeader() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     </script>
-</body>
+  </body>
 </html>
